@@ -1,0 +1,52 @@
+.process-connector,
+.process-connector-vertical {
+  position: absolute;
+  background: rgba(37, 150, 190, 0.24);
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.process-connector::after,
+.process-connector-vertical::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(37,150,190,0), rgba(37,150,190,0.38), rgba(37,150,190,0));
+}
+
+.process-connector::after {
+  animation: processFlowX 3.8s ease-in-out infinite;
+}
+
+.process-connector-vertical::after {
+  background: linear-gradient(180deg, rgba(37,150,190,0), rgba(37,150,190,0.38), rgba(37,150,190,0));
+  animation: processFlowY 3.8s ease-in-out infinite;
+}
+
+.process-connector[data-active='true'],
+.process-connector-vertical[data-active='true'] {
+  background: linear-gradient(90deg, rgba(123, 214, 242, 0.95), #2596be);
+  box-shadow: 0 0 0 1px rgba(37, 150, 190, 0.1), 0 6px 18px rgba(37, 150, 190, 0.2);
+}
+
+.process-connector-vertical[data-active='true'] {
+  background: linear-gradient(180deg, rgba(123, 214, 242, 0.95), #2596be);
+}
+
+.process-connector[data-active='true']::after {
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.7), rgba(255,255,255,0));
+}
+
+.process-connector-vertical[data-active='true']::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.7), rgba(255,255,255,0));
+}
+
+@keyframes processFlowX {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes processFlowY {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}

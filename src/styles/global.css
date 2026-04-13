@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0B1F3B;
+  --color-secondary: #0A192F;
+  --color-background-light: #F3F4F6;
+  --color-surface-white: #FFFFFF;
+  --color-text-dark: #0A192F;
+  --color-text-muted: #4B5563;
+  --color-accent-gold: #F59E0B;
+
+  --font-sans: Inter, Helvetica Neue, Arial, sans-serif;
+  --font-display: Inter, Helvetica Neue, Arial, sans-serif;
+
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background-color: #f3f4f6;
+  color: #0a192f;
+  font-family: Inter, Arial, sans-serif;
+}
+
+/* Link reset */
+a:hover {
+  color: inherit;
+}
+
+/* Base utilities */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Input resets for tailwind */
+input:hover,
+select:hover,
+textarea:hover,
+input:focus,
+select:focus,
+textarea:focus {
+  --tw-ring-color: #AE78FF !important;
+  border-color: #AE78FF !important;
+  box-shadow: 0 0 0 2px rgba(174, 120, 255, 0.3) !important;
+  outline: none !important;
+}
