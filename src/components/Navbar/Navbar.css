@@ -48,6 +48,7 @@
 
 /* ── Inner layout ────────────────────────────────────────────── */
 .navbar-inner {
+  position: relative;
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
@@ -119,6 +120,11 @@
 @media (min-width: 768px) {
   .navbar-nav-desktop {
     display: flex;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    justify-content: center;
+    z-index: 1;
   }
 }
 

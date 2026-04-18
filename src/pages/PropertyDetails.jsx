@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { useUser } from '@clerk/clerk-react'
+import { useState } from 'react'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import {
   ChevronLeft,
   ChevronRight,
@@ -46,12 +47,18 @@ function DocRow({ name, meta }) {
 }
 
 export default function PropertyDetails() {
+  const { isLoaded, isSignedIn } = useUser()
+  const location = useLocation()
   const { slug } = useParams()
   const property = properties.find((p) => p.slug === slug)
   const [requested, setRequested] = useState(false)
   const [imgIdx, setImgIdx] = useState(0)
   const [hoverIndex, setHoverIndex] = useState(null)
 
+  if (!isLoaded) return null
+  if (!isSignedIn) {
+    return <Navigate to={`/sign-in?redirectUrl=${encodeURIComponent(`${location.pathname}${location.search}`)}`} replace />
+  }
   if (!property) return <Navigate to="/" replace />
 
   /* ── Derived ─────────────────────────────────────────────── */
@@ -361,7 +368,7 @@ export default function PropertyDetails() {
                         onMouseEnter={() => setHoverIndex(idx)}
                         onMouseLeave={() => setHoverIndex(null)}
                         className={`rounded-[14px] p-4.5 cursor-default transition-all duration-200 border ${isHovered
-                            ? 'bg-[#ff291b] border-transparent'
+                            ? 'bg-[#8d58ee] border-transparent'
                             : 'bg-white border-[#e8e8e8]'
                           }`}
                       >
@@ -401,7 +408,7 @@ export default function PropertyDetails() {
                       key={item}
                       className="bg-[#f8f9fa] rounded-[12px] py-3.5 px-4 flex items-center gap-2.5"
                     >
-                      <span className="w-2 h-2 rounded-full bg-[#ff291b] shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-[#8d58ee] shrink-0" />
                       <span className="text-[13px] font-bold text-[#171717]">{item}</span>
                     </div>
                   ))}

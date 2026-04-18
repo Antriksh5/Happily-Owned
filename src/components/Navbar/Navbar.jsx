@@ -1,35 +1,38 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useClerk, useUser } from '@clerk/clerk-react'
 import { motion, useSpring } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import brandLogoLight from '../../assets/images/brandLogo1.png'
 import brandLogoDark from '../../assets/images/brandLogo2.png'
 import './Navbar.css'
 
-/* ─── Nav items ─────────────────────────────────────────────── */
+/* Nav items */
 const NAV_LINKS = ['Buy', 'Sell', 'Manage', 'About']
 
-/* ─── Spring config — tuned for liquid bounce/settle feel ───── */
+/* Spring config tuned for liquid bounce/settle feel */
 const BUBBLE_SPRING = { type: 'spring', stiffness: 380, damping: 30, mass: 0.8 }
 
 export default function Navbar({ alwaysSolid = false }) {
-  const headerRef     = useRef(null)
-  const pillRef       = useRef(null)
-  const linkRefs      = useRef([])
+  const clerk = useClerk()
+  const { isSignedIn, user } = useUser()
+  const navigate = useNavigate()
+  const headerRef = useRef(null)
+  const pillRef = useRef(null)
+  const linkRefs = useRef([])
   const lastScrollYRef = useRef(0)
 
-  const [activeIndex, setActiveIndex]   = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0)
   const [hoveredIndex, setHoveredIndex] = useState(null)
-  const [mobileOpen, setMobileOpen]     = useState(false)
-  const [scrolled, setScrolled]         = useState(false)
-  const [navVisible, setNavVisible]     = useState(true)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [navVisible, setNavVisible] = useState(true)
   const solidNav = alwaysSolid || (scrolled && (navVisible || mobileOpen))
 
-  /* ─── Framer Motion springs for bubble position & size ────── */
-  const bubbleX     = useSpring(0,  BUBBLE_SPRING)
-  const bubbleW     = useSpring(80, BUBBLE_SPRING)
-  const bubbleScale = useSpring(1,  { type: 'spring', stiffness: 400, damping: 20 })
+  const bubbleX = useSpring(0, BUBBLE_SPRING)
+  const bubbleW = useSpring(80, BUBBLE_SPRING)
+  const bubbleScale = useSpring(1, { type: 'spring', stiffness: 400, damping: 20 })
 
-  /* ─── Scroll detection ───────────────────────────────────── */
   useEffect(() => {
     const threshold = 30
     const directionThreshold = 8
@@ -59,39 +62,34 @@ export default function Navbar({ alwaysSolid = false }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  /* ─── Measure & animate bubble ──────────────────────────── */
   const moveBubbleTo = useCallback((idx) => {
-    const el     = linkRefs.current[idx]
+    const el = linkRefs.current[idx]
     const parent = pillRef.current
     if (!el || !parent) return
 
     const parentRect = parent.getBoundingClientRect()
-    const elRect     = el.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
 
     bubbleX.set(elRect.left - parentRect.left)
     bubbleW.set(elRect.width)
   }, [bubbleX, bubbleW])
 
-  // Move bubble when active changes
   useEffect(() => {
     const t = setTimeout(() => moveBubbleTo(activeIndex), 60)
     return () => clearTimeout(t)
   }, [activeIndex, moveBubbleTo])
 
-  // Init bubble position after mount
   useEffect(() => {
     const t = setTimeout(() => moveBubbleTo(0), 150)
     return () => clearTimeout(t)
   }, [moveBubbleTo])
 
-  // Recalculate on window resize
   useEffect(() => {
     const handleResize = () => moveBubbleTo(activeIndex)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [activeIndex, moveBubbleTo])
 
-  /* ─── Hover bubble pulse ─────────────────────────────────── */
   useEffect(() => {
     if (hoveredIndex !== null && hoveredIndex !== activeIndex) {
       bubbleScale.set(1.04)
@@ -99,6 +97,10 @@ export default function Navbar({ alwaysSolid = false }) {
       return () => clearTimeout(t)
     }
   }, [hoveredIndex, activeIndex, bubbleScale])
+
+  const handleSignOut = async () => {
+    await clerk.signOut({ redirectUrl: '/' })
+  }
 
   return (
     <motion.header
@@ -117,12 +119,13 @@ export default function Navbar({ alwaysSolid = false }) {
       }}
     >
       <div className="navbar-inner">
-
-        {/* ── Logo ──────────────────────────────────────────── */}
         <div className="navbar-logo">
           <a
             href="/"
-            onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            onClick={(e) => {
+              e.preventDefault()
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
             aria-label="Go to home page"
             style={{ display: 'contents', cursor: 'pointer' }}
           >
@@ -135,13 +138,8 @@ export default function Navbar({ alwaysSolid = false }) {
           </a>
         </div>
 
-        {/* ── Pill nav (center) ─────────────────────────────── */}
         <nav className="navbar-nav-desktop" aria-label="Main navigation">
-          <div
-            ref={pillRef}
-            className="nav-pill"
-          >
-            {/* ── Liquid drop indicator ─────────────────────── */}
+          <div ref={pillRef} className="nav-pill">
             <motion.span
               aria-hidden="true"
               className="nav-drop"
@@ -153,16 +151,15 @@ export default function Navbar({ alwaysSolid = false }) {
               }}
             />
 
-            {/* ── Nav links ─────────────────────────────────── */}
             {NAV_LINKS.map((label, i) => (
               <motion.a
                 key={label}
-                ref={el => (linkRefs.current[i] = el)}
+                ref={(el) => (linkRefs.current[i] = el)}
                 href="#"
                 role="menuitem"
                 aria-current={i === activeIndex ? 'page' : undefined}
                 className={`nav-pill-link ${i === activeIndex ? 'active' : ''}`}
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault()
                   setActiveIndex(i)
                 }}
@@ -176,11 +173,36 @@ export default function Navbar({ alwaysSolid = false }) {
           </div>
         </nav>
 
-        {/* ── Right actions ─────────────────────────────────── */}
         <div className="navbar-actions">
-          <a className="nav-signin" href="#">
-            Sign In
-          </a>
+          {isSignedIn ? (
+            <>
+              <div className={`flex items-center gap-2 rounded-full px-2 py-1 ${solidNav ? 'bg-slate-100' : 'bg-white/10 backdrop-blur-sm'}`}>
+                <img
+                  src={user.imageUrl}
+                  alt={user.firstName || 'User avatar'}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+                <span className={`text-sm font-medium ${solidNav ? 'text-slate-900' : 'text-white'}`}>
+                  {user.firstName || 'Account'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className={`text-sm font-medium transition ${solidNav ? 'text-slate-700 hover:text-slate-900' : 'text-white/70 hover:text-white'}`}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate('/sign-in')}
+              className={`text-sm font-medium transition ${solidNav ? 'text-slate-700 hover:text-slate-900' : 'text-white/70 hover:text-white'}`}
+            >
+              Sign In
+            </button>
+          )}
 
           <motion.a
             href="/#consultation"
@@ -192,11 +214,10 @@ export default function Navbar({ alwaysSolid = false }) {
           </motion.a>
         </div>
 
-        {/* ── Mobile menu toggle ────────────────────────────── */}
         <div className="navbar-mobile-toggle">
           <motion.button
             className="mobile-menu-btn"
-            onClick={() => setMobileOpen(o => !o)}
+            onClick={() => setMobileOpen((o) => !o)}
             whileTap={{ scale: 0.92 }}
             aria-label="Toggle menu"
           >
@@ -205,7 +226,6 @@ export default function Navbar({ alwaysSolid = false }) {
         </div>
       </div>
 
-      {/* ── Mobile dropdown ──────────────────────────────────── */}
       {mobileOpen && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -219,13 +239,48 @@ export default function Navbar({ alwaysSolid = false }) {
               key={label}
               href="#"
               className={`mobile-nav-link ${i === activeIndex ? 'active' : ''}`}
-              onClick={e => { e.preventDefault(); setActiveIndex(i); setMobileOpen(false) }}
+              onClick={(e) => {
+                e.preventDefault()
+                setActiveIndex(i)
+                setMobileOpen(false)
+              }}
             >
               {label}
             </a>
           ))}
           <div className="mobile-nav-footer">
-            <a className="mobile-footer-link" href="#">Sign In</a>
+            {isSignedIn ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={user.imageUrl}
+                    alt={user.firstName || 'User avatar'}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                  <span className={`text-sm font-medium ${solidNav ? 'text-slate-900' : 'text-white'}`}>
+                    {user.firstName || 'Account'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className={`text-sm font-medium ${solidNav ? 'text-slate-700' : 'text-white/70'}`}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false)
+                  navigate('/sign-in')
+                }}
+                className={`text-sm font-medium ${solidNav ? 'text-slate-700' : 'text-white/70'}`}
+              >
+                Sign In
+              </button>
+            )}
             <a className="mobile-footer-link bold" href="/#consultation">Contact Us</a>
           </div>
         </motion.div>

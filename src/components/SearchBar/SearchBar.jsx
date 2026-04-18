@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, Loader2, MapPin } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import '../Hero/Hero.css'
 
 const PHOTON_BBox = '68.1,6.5,97.4,35.7'
 
 export default function SearchBar() {
+  const navigate = useNavigate()
   const searchIcon =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E"
 
@@ -40,6 +42,13 @@ export default function SearchBar() {
   const wrapperRef  = useRef(null)
   const debounceRef = useRef(null)
   const abortRef    = useRef(null)
+
+  const submitSearch = useCallback((value) => {
+    const location = value.trim()
+    if (!location) return
+
+    navigate(`/properties?location=${encodeURIComponent(location)}`)
+  }, [navigate])
 
   /* ── fetch from Photon ─────────────────────────────────── */
   const fetchSuggestions = useCallback(async (q) => {
@@ -93,16 +102,20 @@ export default function SearchBar() {
 
   /* ── keyboard navigation ───────────────────────────────── */
   const handleKeyDown = (e) => {
-    if (!showDrop || suggestions.length === 0) return
     if (e.key === 'ArrowDown') {
+      if (!showDrop || suggestions.length === 0) return
       e.preventDefault()
       setActiveIdx(i => Math.min(i + 1, suggestions.length - 1))
     } else if (e.key === 'ArrowUp') {
+      if (!showDrop || suggestions.length === 0) return
       e.preventDefault()
       setActiveIdx(i => Math.max(i - 1, 0))
     } else if (e.key === 'Enter' && activeIdx >= 0) {
       e.preventDefault()
       selectSuggestion(suggestions[activeIdx])
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      submitSearch(query)
     } else if (e.key === 'Escape') {
       setShowDrop(false)
     }
@@ -113,6 +126,7 @@ export default function SearchBar() {
     setQuery(label)
     setShowDrop(false)
     setSuggestions([])
+    submitSearch(label)
   }
 
   /* ── global close on outside click / Escape ────────────── */
